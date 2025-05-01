@@ -1,0 +1,19 @@
+image:
+  repository: lscr.io/linuxserver/foldingathome
+  tag: latest
+  pullPolicy: Always
+  pullSecret: ""
+
+# This is the number of total pods you will have
+replicaCount: 1
+
+# This is the **per-pod** resource requests/limits
+resources:
+  requests:
+    cpu: 250m
+    memory: 64Mi
+  limits:
+    cpu: '1'
+    memory: 500Mi
+
+timezone: America/New_York

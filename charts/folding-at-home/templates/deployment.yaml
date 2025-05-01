@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: folding-at-home
+  namespace: folding-at-home
+  labels:
+    app: folding-at-home
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: folding-at-home
+  template:
+    metadata:
+      labels:
+        app: folding-at-home
+    spec:
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      containers:
+        - name: foldingathome
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 7396
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: folding-at-home-info
+          env:
+            - name: ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: folding-at-home-info
+                  key: ACCOUNT_TOKEN
+            - name: PUID
+              value: '1000'
+            - name: PGID
+              value: '1000'
+            - name: TZ
+              value: {{ .Values.timezone }}
+            - name: MACHINE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+
+  serviceName: ''
