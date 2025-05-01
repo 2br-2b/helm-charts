@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drawpile-srv
+  namespace: drawpile
+  labels:
+    app.kubernetes.io/name: drawpile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drawpile
+  template:
+    metadata:
+      namespace: drawpile
+      labels:
+        app.kubernetes.io/name: drawpile
+    spec:
+      volumes:
+        - name: serverdata
+          persistentVolumeClaim:
+            claimName: drawpile-serverdata-pv-claim-2
+        - name: config
+          configMap:
+            name: drawpile-configmap
+            items:
+              - key: config
+                path: drawpile.cfg
+            defaultMode: 420
+      containers:
+        - name: drawpile-srv
+          image: drawpile/drawpile-srv:2.2.2-beta.5
+          args:
+            - '--sessions'
+            - /home/drawpile/sessions
+            - '--config'
+            - /home/conf/drawpile.cfg
+            - '--web-admin-port'
+            - '27780'
+            - '--web-admin-access'
+            - all
+            - '--templates'
+            - /home/drawpile/session-templates
+            - '--local-host'
+            - 192.168.1.1
+            - '--extauth'
+            - https://drawpile.net/api/ext-auth/
+            - '--websocket-port'
+            - '27751'
+          ports:
+            - containerPort: 27750
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 50m
+              memory: 100Mi
+            requests:
+              cpu: 25m
+              memory: 18Mi
+          volumeMounts:
+            - name: serverdata
+              mountPath: /home/drawpile
+            - name: config
+              mountPath: /home/conf
